@@ -1,4 +1,5 @@
 const express = require('express')
+const bodyParser = require('body-parser')
 const expressHandlebars = require('express-handlebars')
 const handlers = require('./lib/handlers')
 const weatherMiddlware = require('./lib/middleware/weather')
@@ -25,6 +26,8 @@ const port = process.env.PORT||3000
 
 app.use(express.static(__dirname+'/public'))
 
+app.use(bodyParser.urlencoded({extended:true}))
+
 app.use(weatherMiddlware)
 
 app.get('/',handlers.home)
@@ -32,6 +35,10 @@ app.get('/',handlers.home)
 app.get('/about',handlers.about)
 
 app.get('/section',handlers.section)
+
+app.get('/newsletter-signup',handlers.newsletterSignup)
+app.post('/newsletter-signup/process',handlers.newsletterSignupProcess)
+app.get('/newsletter-signup/thank-you',handlers.newsletterSignupThankYou)
 // 定制404页
 app.use(handlers.notFound)
 // 定制500页
