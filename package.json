@@ -16,12 +16,13 @@
     "body-parser": "^1.19.1",
     "express": "^4.17.2",
     "express-handlebars": "^6.0.2",
+    "multiparty": "^4.2.3",
     "nodejs": "0.0.0"
   },
   "devDependencies": {
     "eslint": "^8.6.0",
     "jest": "^27.4.7",
     "portfinder": "^1.0.28",
-    "puppeteer": "^13.0.1"
+    "puppeteer": "^5.3.1"
   }
 }
