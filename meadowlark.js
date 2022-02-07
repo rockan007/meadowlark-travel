@@ -2,10 +2,12 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const expressHandlebars = require("express-handlebars");
 const multiparty = require("multiparty");
+
 const cookieParser = require("cookie-parser");
 // 配置文件
 const { credentials } = require("./config");
 const expressSession = require("express-session");
+const app = express();
 app.use(
   expressSession({
     resave: false,
@@ -13,13 +15,14 @@ app.use(
     secret: credentials.cookieSecret,
   })
 );
+
 // flash中间件
 const flashMiddleware = require("./lib/middleware/flash");
 app.use(flashMiddleware);
 const handlers = require("./lib/handlers");
 const weatherMiddlware = require("./lib/middleware/weather");
 
-const app = express();
+
 app.use(cookieParser(credentials.cookieSecret));
 app.engine(
   "handlebars",
@@ -79,6 +82,7 @@ app.post(
 app.get("/contest/vacation-photo-thank-you", handlers.vacationPhotoThankYou);
 // 获取archive
 app.get("/newsletter/archive",handlers.newsletterArchive)
+app.get("/cart",handlers.cartCheckout)
 // 定制404页
 app.use(handlers.notFound);
 // 定制500页
