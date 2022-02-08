@@ -1,13 +1,28 @@
 const express = require("express");
+const Sentry = require('@sentry/node')
+const Tracing = require("@sentry/tracing");
 const bodyParser = require("body-parser");
 const expressHandlebars = require("express-handlebars");
 const multiparty = require("multiparty");
 
 const cookieParser = require("cookie-parser");
+const cluster = require("cluster")
 // 配置文件
 const { credentials } = require("./config");
 const expressSession = require("express-session");
 const app = express();
+Sentry.init({ 
+  dsn: 'https://abc69f5da118469bad96dab401f92989@o1137646.ingest.sentry.io/6190669',
+  integrations: [
+    // enable HTTP calls tracing
+    new Sentry.Integrations.Http({ tracing: true }),
+    // enable Express.js middleware tracing
+    new Tracing.Integrations.Express({ app }),
+  ], 
+  tracesSampleRate: 1.0,
+})
+app.use(Sentry.Handlers.requestHandler());
+app.use(Sentry.Handlers.tracingHandler());
 app.use(
   expressSession({
     resave: false,
@@ -15,6 +30,11 @@ app.use(
     secret: credentials.cookieSecret,
   })
 );
+app.use((req, res, next) => {
+  if(cluster.isWorker)
+  console.log(`Worker ${cluster.worker.id} received request`)
+  next()
+  })
 
 // flash中间件
 const flashMiddleware = require("./lib/middleware/flash");
@@ -83,18 +103,30 @@ app.get("/contest/vacation-photo-thank-you", handlers.vacationPhotoThankYou);
 // 获取archive
 app.get("/newsletter/archive",handlers.newsletterArchive)
 app.get("/cart",handlers.cartCheckout)
+app.get('/fail',handlers.handlerError)
+
+app.use(Sentry.Handlers.errorHandler());
 // 定制404页
 app.use(handlers.notFound);
 // 定制500页
 app.use(handlers.serverError);
 
-if (require.main == module) {
+process.on('uncaughtException', err => {
+  // 在这里做一些必要的清理工作，例如关闭数据库连接
+  Sentry.captureException(err)
+  process.exit(1)
+})
+function startServer(port){
   app.listen(port, () => {
     console.log(
       `Express started on http://localhost:${port}; ` +
         "press Ctrl+C to terminate."
     );
   });
+}
+if (require.main == module) {
+  startServer(port)
 } else {
-  module.exports = app;
+  // 这里导出创建服务器的函数
+  module.exports = startServer;
 }
