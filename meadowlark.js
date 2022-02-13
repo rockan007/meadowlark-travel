@@ -45,6 +45,8 @@ app.use((req, res, next) => {
 
 // flash中间件
 const flashMiddleware = require("./lib/middleware/flash");
+const autoViewsMiddleware = require("./lib/middleware/auto-views")
+
 app.use(flashMiddleware);
 const handlers = require("./lib/handlers");
 const weatherMiddlware = require("./lib/middleware/weather");
@@ -115,7 +117,8 @@ app.get('/fail',handlers.handlerError)
 app.get('/vacations', handlers.listVacations)
 
 app.get('/set-currency/:currency', handlers.setCurrency)
-
+app.use(autoViewsMiddleware)
+// 自动化渲染视图
 app.use(Sentry.Handlers.errorHandler());
 // 定制404页
 app.use(handlers.notFound);
