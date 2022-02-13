@@ -10,6 +10,9 @@ const cluster = require("cluster")
 // 配置文件
 const { credentials } = require("./config");
 const expressSession = require("express-session");
+const RedisStore = require("connect-redis")(expressSession)
+
+require('./db')
 const app = express();
 Sentry.init({ 
   dsn: 'https://abc69f5da118469bad96dab401f92989@o1137646.ingest.sentry.io/6190669',
@@ -28,6 +31,10 @@ app.use(
     resave: false,
     saveUninitialized: false,
     secret: credentials.cookieSecret,
+    store:new RedisStore({
+      url:credentials.redis.url,
+      logErrors:true
+    })
   })
 );
 app.use((req, res, next) => {
@@ -104,6 +111,10 @@ app.get("/contest/vacation-photo-thank-you", handlers.vacationPhotoThankYou);
 app.get("/newsletter/archive",handlers.newsletterArchive)
 app.get("/cart",handlers.cartCheckout)
 app.get('/fail',handlers.handlerError)
+
+app.get('/vacations', handlers.listVacations)
+
+app.get('/set-currency/:currency', handlers.setCurrency)
 
 app.use(Sentry.Handlers.errorHandler());
 // 定制404页
